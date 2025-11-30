@@ -6,6 +6,8 @@ node_modules/
 .ipynb_checkpoints
 *.tsbuildinfo
 
+requirements.txt
+
 # Created by https://www.gitignore.io/api/python
 # Edit at https://www.gitignore.io/?templates=python
 
@@ -22,7 +24,7 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
+dist/	
 downloads/
 eggs/
 .eggs/
