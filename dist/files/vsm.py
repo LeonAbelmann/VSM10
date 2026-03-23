@@ -1,15 +1,11 @@
-#!/usr/bin/env python3
 ########################################################################
 # vsm.py
 # Script to analyse DMS Model 10 VHD data files
 # Leon Abelmann
 ########################################################################
-import sys # Enable reading parameters from command line
-from pathlib import Path # To handle filenames from arg list
-
 import VSMPlot
 
-class VSMSettings:
+class VSMSettings():
     "Settings for analysis and plotting"
     
     # Moment is fitted on a range determined by a maximum drop
@@ -33,19 +29,8 @@ class VSMSettings:
     # Sometimes first points are bad, skip them
     SkipPoints = 0
 
-
 def plot(filename,settings):
-    return VSMPlot.plotVSM(filename, settings)
+    return VSMPlot.PlotVSM(filename, settings)
 
-if __name__ == "__main__":
-    if (len(sys.argv) < 2):
-        print("Usage: vsm.py <datafile.VHD>")
-        sys.exit(2)
 
-    for arg in sys.argv[1:]:
-        # Get filename with path and extension
-        filename=Path(str(arg))
-        print("Processing ", filename)
-        settings = VSMSettings()
-        plot(filename, settings)
  
