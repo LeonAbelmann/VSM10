@@ -33,6 +33,9 @@ class VSMSettings:
     # Sometimes first points are bad, skip them
     SkipPoints = 0
 
+    # Extra's to display in graph
+    ShowSlopes = False
+
 
 def plot(filename,settings):
     return VSMPlot.plotVSM(filename, settings)

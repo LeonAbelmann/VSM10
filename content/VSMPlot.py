@@ -152,15 +152,16 @@ def plotVSM(filename, settings):
     ax.plot(Field/FieldUnit, MomentPar/MomentUnit,'k',linewidth="1")
 
     # Show slope lines used for susceptilibity
-    # slopeRange=math.ceil(SlopeNumPoints/2)
-    # SlopeField=Field[indexUp-slopeRange:indexUp+slopeRange]
-    # ax.plot(SlopeField/FieldUnit,\
-    #         (SlopeUp*(SlopeField-BcUp))/MomentUnit,'b')
-    # halfway = np.argmax(Field)
-    # SlopeField=Field[halfway+indexDown-slopeRange:\
-    #                  halfway+indexDown+slopeRange]
-    # ax.plot(SlopeField/FieldUnit,\
-    #         (SlopeDown*(SlopeField-BcDown))/MomentUnit,'b')
+    if settings.ShowSlopes:
+        slopeRange=math.ceil(SlopeNumPoints/2)
+        SlopeField=Field[indexUp-slopeRange:indexUp+slopeRange]
+        ax.plot(SlopeField/FieldUnit,\
+                (SlopeUp*(SlopeField-BcUp))/MomentUnit,'b')
+        halfway = np.argmax(Field)
+        SlopeField=Field[halfway+indexDown-slopeRange:\
+                         halfway+indexDown+slopeRange]
+        ax.plot(SlopeField/FieldUnit,\
+                (SlopeDown*(SlopeField-BcDown))/MomentUnit,'b')
     
     # Show which points were used to calculate moment
     # length  = len(Field)
@@ -210,7 +211,7 @@ def plotVSM(filename, settings):
     # fig.show()
     display(fig)
     
-    print("plotting done. preparing pdf")
+    # print("plotting done. preparing pdf")
     
     #pdffile = filename.with_suffix('.pdf')
     root, _ = os.path.splitext(filename)
