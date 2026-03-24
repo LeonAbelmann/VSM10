@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from sistr import sistr
 from matplotlib.ticker import (MultipleLocator, AutoMinorLocator)
 
-from VSMCalc import Parameters, CalcMoment, CalcBr, CalcBc, CalcSlope
+from VSMCalc import Parameters, CalcMoment, CalcBackground, CalcBr, CalcBc, CalcSlope
 from VSMLoad import LoadVHD, CorrectBackground, CutCurves
 
 #######################################################################
@@ -41,10 +41,10 @@ def plotVSM(filename, settings):
     MomentPer = MomentPer[settings.SkipPoints:]
  
     # Either define background from holder
-    Background = settings.BackgroundHolder
-    BGError    = settings.BackgroundHolderError
+    # Background = settings.BackgroundHolder
+    # BGError    = settings.BackgroundHolderError
     # Or calculate diamagnetic background signal
-    # Background, BGError = CalcBackground(Field, MomentPar, BGNumPoints)
+    Background, BGError = CalcBackground(Field, MomentPar, settings.BGNumPoints)
     
     # Correct parallel curve for diamagnetic background signal
     MomentPar = CorrectBackground(Field,MomentPar,Background)
@@ -153,7 +153,7 @@ def plotVSM(filename, settings):
 
     # Show slope lines used for susceptilibity
     if settings.ShowSlopes:
-        slopeRange=math.ceil(SlopeNumPoints/2)
+        slopeRange=math.ceil(settings.SlopeNumPoints/2)
         SlopeField=Field[indexUp-slopeRange:indexUp+slopeRange]
         ax.plot(SlopeField/FieldUnit,\
                 (SlopeUp*(SlopeField-BcUp))/MomentUnit,'b')

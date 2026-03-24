@@ -21,7 +21,7 @@ class VSMSettings:
 
     BackgroundHolderError =  0.2e-7
     # If you estimate background from curve, define number of points
-    # BGNumPoints = 6 # Number of points to use for diamagnetic background
+    BGNumPoints = 6 # Number of points to use for diamagnetic background
     # estimate
 
     # Number of points to calculate susceptibility
@@ -34,7 +34,7 @@ class VSMSettings:
     SkipPoints = 0
 
     # Extra's to display in graph
-    ShowSlopes = False
+    ShowSlopes = True
 
 
 def plot(filename,settings):
