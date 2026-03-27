@@ -16,6 +16,23 @@ from matplotlib.ticker import (MultipleLocator, AutoMinorLocator)
 from VSMCalc import Parameters, CalcMoment, CalcBackground, CalcBr, CalcBc, CalcSlope
 from VSMLoad import LoadVHD, CorrectBackground, CutCurves
 
+# Detect if running in a Jupyter Notebook
+def is_notebook():
+    try:
+        from IPython import get_ipython
+        return 'IPKernelApp' in get_ipython().config
+    except:
+        return False
+
+# Graphs are treated differently running locally or in the Jupyter notebook:
+def show_figure(fig):
+    if is_notebook():
+        from IPython.display import display
+        display(fig)
+    else:
+        fig.show()
+
+
 #######################################################################
 # plotVSM(filename, settings)
 # Extract parameters. Plot curve to pdf file and
@@ -220,10 +237,9 @@ def plotVSM(filename, settings):
     # ax[0].legend()
     # ax[0].set_ylim(ymin=0, ymax=160)
 
-    # fig.tight_layout()
-    fig.show()
-    # display(fig)
-    
+    fig.tight_layout()
+    show_figure(fig)
+
     # print("plotting done. preparing svg and pdf")
     root, _ = os.path.splitext(filename)
     svgfile = root + ".svg"
