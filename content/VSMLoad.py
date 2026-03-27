@@ -73,4 +73,4 @@ def CutCurves(Field,Moment):
 ######################################################################
 def CorrectBackground(Field,Moment,Background):
     MomentPar = Moment - Background*Field
-    return Moment
+    return MomentPar

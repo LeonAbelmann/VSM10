@@ -41,10 +41,15 @@ def plotVSM(filename, settings):
     MomentPer = MomentPer[settings.SkipPoints:]
  
     # Either define background from holder
-    # Background = settings.BackgroundHolder
-    # BGError    = settings.BackgroundHolderError
-    # Or calculate diamagnetic background signal
-    Background, BGError = CalcBackground(Field, MomentPar, settings.BGNumPoints)
+    if hasattr(settings, 'BackgroundHolder') and settings.BackgroundHolder is not None:
+        Background = settings.BackgroundHolder
+        BGError    = settings.BackgroundHolderError
+    else:
+        # Or calculate diamagnetic background signal
+        Background, BGError = CalcBackground(Field, MomentPar, settings.BGNumPoints)
+
+    Results.Background.val = Background
+    Results.Background.err = BGError
     
     # Correct parallel curve for diamagnetic background signal
     MomentPar = CorrectBackground(Field,MomentPar,Background)
@@ -66,7 +71,6 @@ def plotVSM(filename, settings):
     # whichever is bigger
     BrError = max((BrUpError + BrDownError)/math.sqrt(2),\
                      abs(BrUp + BrDown))
-
     Results.Remanence.val = Br
     Results.Remanence.err = BrError
     
@@ -74,21 +78,34 @@ def plotVSM(filename, settings):
     BcUp, BcUpError, BcDown, BcDownError  = CalcBc(Field, MomentPar)
     Bc = (BcUp-BcDown)/2 # Average
     BcError = (BcUpError+BcDownError)/math.sqrt(2)
+    print("Bc: ", Bc, " BcError: ", BcError)
     Results.Coercivity.val = Bc
     Results.Coercivity.err = BcError
  
     # Calculate slope around Coercivity
-    SlopeUp, SUError, SlopeDown, SDError, indexUp, indexDown = CalcSlope(Field, MomentPar, BcUp, BcDown, settings.SlopeNumPoints)    
+    SlopeUp, SUError, SlopeDown, SDError, indexUp, indexDown = \
+            CalcSlope(Field, MomentPar, BcUp, BcDown, settings.SlopeNumPoints)    
     Slope     = (SlopeUp + SlopeDown)/2
+    
     # Error is sum of fit errors or difference between values,
     # whichever is bigger
     SlopeError = max((SUError + SDError)/math.sqrt(2),
                      abs(SlopeUp - SlopeDown))
     Results.Slope.val = Slope
     Results.Slope.err = SlopeError
-                    
+
+    # Plot
+    fig, ax = plt.subplots(figsize=(6,4), dpi = 100)
+    
+    plt.title(os.path.basename(filename),fontsize=10)
+
+    
+    # Only limit field axis if FieldLimit is set in vsm.py
+    if not hasattr(settings, 'FieldLimit') or settings.FieldLimit is None:
+        settings.FieldLimit = -Field[0]
+   
     # Choose field label
-    if (abs(Field[0]) < 1) :
+    if (abs(settings.FieldLimit) < 1) :
         # Field in mT
         FieldText = "mT"
         FieldUnit = 1e-3
@@ -97,6 +114,9 @@ def plotVSM(filename, settings):
         FieldText = "T"
         FieldUnit = 1
 
+    # Set field axis range
+    plt.xlim(-settings.FieldLimit/FieldUnit, settings.FieldLimit/FieldUnit)
+        
     # Choose magnetic moment label
     if (abs(MomentPar[0]) > 1e-2) :
         #Moment in mAm2
@@ -111,10 +131,20 @@ def plotVSM(filename, settings):
             MomentText = "nAm$^2$"
             MomentUnit = 1e-9
 
-    # Plot
-    fig, ax = plt.subplots(figsize=(6,4), dpi = 100)
-    
-    plt.title(filename,fontsize=10)
+    # Set moment axis range
+    plt.ylim(-1.1*Moment/MomentUnit,1.1*Moment/MomentUnit)
+
+    # Make sure results are printed in correct units
+    Results.Moment.unit     = MomentUnit
+    Results.Moment.text     = MomentText
+    Results.Background.unit = MomentUnit/FieldUnit
+    Results.Background.text = MomentText+"/"+FieldText
+    Results.Remanence.unit  = MomentUnit
+    Results.Remanence.text  = MomentText
+    Results.Coercivity.unit = FieldUnit
+    Results.Coercivity.text = FieldText
+    Results.Slope.units     = MomentUnit/FieldUnit
+    Results.Slope.text      = MomentText+"/"+FieldText
     
     # Labels on axes
     ax.set_ylabel('Moment / '+MomentText, fontsize = 14)
@@ -132,19 +162,16 @@ def plotVSM(filename, settings):
     # Tics on all axes
     ax.tick_params(which='both',top=True,right=True)
 
-    # Limit field axis
-    #plt.xlim(-xlimit,xlimit)
-    plt.ylim(-1.1*Moment/MomentUnit,1.1*Moment/MomentUnit)
-
     # Plot MomentPer, below all other graphs
     ax.plot(Field/FieldUnit,MomentPer/MomentUnit,
                 'ro',markersize="3",label=r"m$_\perp$")
     ax.plot(Field/FieldUnit, MomentPer/MomentUnit,
                 'r',linewidth="1")
-    
+
     # Show coercivity lines:
-    # plt.axvline(x=BcUp/FieldUnit)
-    # plt.axvline(x=BcDown/FieldUnit)
+    if settings.ShowCoercivity:
+        plt.axvline(x=BcUp/FieldUnit)
+        plt.axvline(x=BcDown/FieldUnit)
     
     # Plot MomentPar
     ax.plot(Field/FieldUnit, MomentPar/MomentUnit,'ko',markersize="3",
@@ -164,39 +191,25 @@ def plotVSM(filename, settings):
                 (SlopeDown*(SlopeField-BcDown))/MomentUnit,'b')
     
     # Show which points were used to calculate moment
-    # length  = len(Field)
-    # index = [[0,NumPoints],
-    #              [halfway-NumPoints,halfway+NumPoints],
-    #              [length-NumPoints,length]]
-    # for sec in index:
-    #     ax.plot(Field[sec[0]:sec[1]]/FieldUnit,\
-    #                 MomentPar[sec[0]:sec[1]]/MomentUnit,\
-    #                 'bo',markersize="3")
+    if settings.ShowSaturation:
+        length  = len(Field)
+        index = [[0,NumPoints],
+                 [halfway-NumPoints,halfway+NumPoints],
+                 [length-NumPoints,length]]
+        for sec in index:
+            ax.plot(Field[sec[0]:sec[1]]/FieldUnit,\
+                    MomentPar[sec[0]:sec[1]]/MomentUnit,\
+                    'bo',markersize="3")
                     
     # Show remanence points
-    # print("Br : ", [BrUp/MomentUnit,BrDown/MomentUnit])
-    # ax.plot([0,0],[BrUp/MomentUnit,BrDown/MomentUnit],'bo',markersize="5")
+    if settings.ShowRemanence:
+        ax.plot([0,0],[BrUp/MomentUnit,BrDown/MomentUnit],'bo',markersize="5")
 
     # Info block
-    # textblock = ""
-    # textblock =  "Moment     : %s \n"%\
-    #   sistr(Moment/MomentUnit, MError/MomentUnit, MomentText)
-    # # Background in uAm2/T
-    # textblock = textblock + "Background : %s \n"%\
-    #   sistr(Background/(MomentUnit/FieldUnit),\
-    #   BGError/(MomentUnit/FieldUnit), \
-    #    MomentText+"/"+FieldText)
-    # textblock = textblock + "Remanence  : %s \n"%\
-    #   sistr(Br/MomentUnit,BrError/MomentUnit,MomentText)
-    # textblock = textblock + "Bc         : %s \n"%\
-    #   sistr(Bc/FieldUnit,BcError/FieldUnit,FieldText)
-    # textblock = textblock + "Rel. Slope : %s \n"%\
-    #   sistr(Slope/Moment,SlopeError/Moment,"1/"+FieldText)
-    textblock = "Angle : %.1f deg"%\
-                (Angle[0])
-
-    plt.annotate(textblock, xy=(0.01,0.95), xycoords='axes fraction',\
-                 fontfamily='monospace', fontsize=9)
+    # Results.print()
+    # print(Results.textblock())
+    plt.annotate(Results.textblock(), xy=(0.01,0.68), xycoords='axes fraction',\
+                 fontfamily='monospace', fontsize=7)
 
     ax.legend(loc='lower right')
     # Text instead of legend
@@ -208,22 +221,33 @@ def plotVSM(filename, settings):
     # ax[0].set_ylim(ymin=0, ymax=160)
 
     # fig.tight_layout()
-    # fig.show()
-    display(fig)
+    fig.show()
+    # display(fig)
     
-    # print("plotting done. preparing pdf")
-    
-    #pdffile = filename.with_suffix('.pdf')
+    # print("plotting done. preparing svg and pdf")
     root, _ = os.path.splitext(filename)
-    #pdffile = root + ".pdf"
-    #fig.savefig(pdffile)
-
-    root, _ = os.path.splitext(filename)    
     svgfile = root + ".svg"
+    pdffile = root + ".pdf"
+    csvfile = root + ".csv"
+    
     try:
-        fig.savefig(svgfile)
+        if settings.PrintSVG:
+            fig.savefig(svgfile)
+        if settings.PrintPDF:
+            fig.savefig(pdffile)
+        if settings.SaveCSV:
+            # Combine the arrays into a list of rows
+            rows = zip(Field, MomentPar, MomentPer)
+            # Write to CSV
+            with open(csvfile, 'w', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                # Header
+                writer.writerow(\
+                                ['Field[T]', 'MomentPar[Am2]', 'MomentPer[Am2]']) 
+                writer.writerows(rows)
     except:
         print("saving file failed")
+
     return Results
  
 

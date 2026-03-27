@@ -16,14 +16,23 @@ class Parameters():
         "Value plus error"
         val = 0
         err = 0
+        unit = 1
+        text = ""
         def all(self):
-            return "%g (%g)"%(self.val,self.err)
+            return "%g (%g) %s"%(self.val,self.err,self.text)
+        
     FileName   = ""    # VHD filename
+    Background = par() # Linear background signal Am2/T
     Moment     = par() # Saturation moment, Am2
     Remanence  = par() # Remanent moment, Am2
     Coercivity = par() # Coercive field, T
     Slope      = par() # dm/dB at B=Bc
     Angle      = par() # Field angle (set by VSM)
+
+    # Machine settings for Angle
+    Angle.err  = 1
+    Angle.text = "deg"
+    
     def print(self):
         print("FileName   : ",self.FileName)
         print("Angle      : ",self.Angle.all())
@@ -46,6 +55,26 @@ class Parameters():
         txt = txt + "%g, %g, "%(self.Remanence.val, self.Remanence.err)
         txt = txt + "%g, %g, "%(self.Coercivity.val, self.Coercivity.err)
         txt = txt + "%g, %g  "%(self.Slope.val, self.Slope.err)
+        return txt
+    def textblock(self):
+        obj = self.Moment
+        txt =  "Moment     : %s \n"%\
+               sistr(obj.val/obj.unit, obj.err/obj.unit, obj.text)
+        obj = self.Background
+        txt = txt + "Background : %s \n"%\
+              sistr(obj.val/obj.unit, obj.err/obj.unit, obj.text)
+        obj = self.Remanence
+        txt = txt + "Remanence  : %s \n"%\
+              sistr(obj.val/obj.unit, obj.err/obj.unit, obj.text)
+        obj = self.Coercivity
+        txt = txt + "Coercivity : %s \n"%\
+              sistr(obj.val/obj.unit, obj.err/obj.unit, obj.text)
+        obj = self.Slope
+        txt = txt + "Slope      : %s \n"%\
+              sistr(obj.val/obj.unit, obj.err/obj.unit, obj.text)
+        obj = self.Angle
+        txt = txt + "Angle      : %s"%\
+              sistr(obj.val/obj.unit, obj.err/obj.unit, obj.text)
         return txt
 
 
@@ -268,8 +297,7 @@ def CalcSlope(Field, Moment, BcUp, BcDown, NumPoints):
 
     Down, DError = findSlope(FieldDown[indexDown-fitrange:indexDown+fitrange],
                     MomentDown[indexDown-fitrange:indexDown+fitrange])
-    print("Slope Down: ", -Down, " error: ", DError)
+    print("Slope Down: ", Down, " error: ", DError)
 
-    # Return negative of down slope, more logical
-    return Up, UError, -Down, DError, indexUp, indexDown
+    return Up, UError, Down, DError, indexUp, indexDown
  
