@@ -19,9 +19,9 @@ from VSMLoad import LoadVHD, CorrectBackground, CutCurves
 # Detect if running in a Jupyter Notebook
 def is_notebook():
     try:
-        from IPython import get_ipython
-        return 'IPKernelApp' in get_ipython().config
-    except:
+        __IPYTHON__
+        return True
+    except NameError:
         return False
 
 # Graphs are treated differently running locally or in the Jupyter notebook:
