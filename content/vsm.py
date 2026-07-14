@@ -18,8 +18,8 @@ class VSMSettings:
     
     # Background signal of holder plus empty substrate
     # E.g. -4.4e-8 emu/Oe. 1 emu/Oe = 1e-3 Am2/1e-4 T = 10 Am2/T
-    # BackgroundHolder      = -1.67e-7 # Am2/T
-    # BackgroundHolderError =  0.2e-7
+    BackgroundHolder      = -80e-9 # Am2/T
+    BackgroundHolderError =  30e-9
     
     # If you estimate background from curve, define number of points
     BGNumPoints = 6 # Number of points to use for background estimate
@@ -30,7 +30,7 @@ class VSMSettings:
     
     # Number of points to calculate susceptibility
     SlopeNumPoints = 5
-    ShowSlopes = True     # Show points used for susceptibility estimate
+    ShowSlopes = False     # Show points used for susceptibility estimate
 
     # Number of points to calculate remanence
     RemNumPoints = 5

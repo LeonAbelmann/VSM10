@@ -49,12 +49,12 @@ class Parameters():
         txt = txt + "Slope (Am2/T),SlopeError (Am2/T)"
         return txt
     def println(self):
-        txt = self.FileName+", "
-        txt = txt + "%g, %g, "%(self.Angle.val, self.Angle.err)
-        txt = txt + "%g, %g, "%(self.Moment.val, self.Moment.err)
-        txt = txt + "%g, %g, "%(self.Remanence.val, self.Remanence.err)
-        txt = txt + "%g, %g, "%(self.Coercivity.val, self.Coercivity.err)
-        txt = txt + "%g, %g  "%(self.Slope.val, self.Slope.err)
+        txt = "%s ," % (self.FileName)
+        txt = txt + "%g, %g, "% (self.Angle.val, self.Angle.err)
+        txt = txt + "%g, %g, "% (self.Moment.val, self.Moment.err)
+        txt = txt + "%g, %g, "% (self.Remanence.val, self.Remanence.err)
+        txt = txt + "%g, %g, "% (self.Coercivity.val, self.Coercivity.err)
+        txt = txt + "%g, %g  "% (self.Slope.val, self.Slope.err)
         return txt
     def textblock(self):
         obj = self.Moment
@@ -182,20 +182,14 @@ def basis(x):
 # Slope, Error = findSlope(Field, Moment)
 # Fit to straight line, return slope
 ######################################################################
-def findSlope(Field,Moment):
-#http://www.eg.bucknell.edu/~phys310/jupyter/linear_fit_example.html
-    X = basis(Field).T    # Basis functions evaluated at all x (the X_j(x_i)) of N.R.)
-    u = np.ones(len(Moment))*3e-9 # Uncertainty in Moment
-    W = np.diag(1/u)  # Matrix with uncertainties on diagonal
-    Xw = np.dot(W,X)  # A_ij of Eq. (14.3.4)
-    Yw = np.dot(Moment,W)  # b_i of Eq. (14.3.5)
-    fit = np.linalg.lstsq(Xw,Yw,rcond=1)  # lstq returns: best values, chi2, ..
-    covariance = np.linalg.inv(np.dot(Xw.T,Xw))
-    uncertainty = np.sqrt(np.diag(covariance))
+def findSlope(Field, Moment):
+    X = basis(Field).T
+    fit = np.linalg.lstsq(X, Moment, rcond=None)
+    residuals = Moment - X @ fit[0]
+    residual_variance = np.var(residuals)
+    covariance = residual_variance * np.linalg.inv(X.T @ X)
     slope = fit[0][1]
-    error = np.sqrt(covariance[1,1])
-    #print("Slope",slope)
-    #print("Error", error)
+    error = np.sqrt(covariance[1, 1])
     return slope, error
 
 #######################################################################

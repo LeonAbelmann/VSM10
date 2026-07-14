@@ -196,12 +196,12 @@ def plotVSM(filename, settings):
     ax.plot(Field/FieldUnit, MomentPar/MomentUnit,'k',linewidth="1")
 
     # Show slope lines used for susceptilibity
+    halfway = np.argmax(Field)
     if settings.ShowSlopes:
         slopeRange=math.ceil(settings.SlopeNumPoints/2)
         SlopeField=Field[indexUp-slopeRange:indexUp+slopeRange]
         ax.plot(SlopeField/FieldUnit,\
                 (SlopeUp*(SlopeField-BcUp))/MomentUnit,'b')
-        halfway = np.argmax(Field)
         SlopeField=Field[halfway+indexDown-slopeRange:\
                          halfway+indexDown+slopeRange]
         ax.plot(SlopeField/FieldUnit,\
